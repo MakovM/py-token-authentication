@@ -164,10 +164,13 @@ class OrderViewSet(
     def get_permissions(self):
         if self.action == "create":
             return [IsAuthenticated()]
-        return super().get_permissions()
+        return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        user = self.request.user
+        if not user.is_authenticated:
+            return self.queryset.none()
+        return self.queryset.filter(user=user)
 
     def get_serializer_class(self):
         if self.action == "list":
